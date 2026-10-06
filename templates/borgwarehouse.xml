@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>BorgWarehouse</Name>
+  <Repository>borgwarehouse/borgwarehouse</Repository>
+  <Registry>https://hub.docker.com/r/borgwarehouse/borgwarehouse</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/jamesfreeman959/unraid-borgwarehouse/issues</Support>
+  <Project>https://borgwarehouse.com</Project>
+  <ReadMe>https://github.com/jamesfreeman959/unraid-borgwarehouse#readme</ReadMe>
+  <Overview>BorgWarehouse is a fast, modern web interface for running a BorgBackup server. It turns your Unraid server into a central destination for Borg backups from your other machines: create and manage repositories, assign SSH keys, set quotas, monitor backup status and storage use, and get alerts by email or Apprise when a backup is late. Clients back up over SSH using borg, Vorta or borgmatic.&#xD;
+&#xD;
+Before installing: generate two secrets for BETTER_AUTH_SECRET and CRONJOB_KEY (for example with "openssl rand -base64 32" in the Unraid terminal), and set SSH_SERVER_PORT to the same value as the SSH host port. Unraid's own SSH already uses port 22, so the default here is 2222.&#xD;
+&#xD;
+Status and storage checks run on a schedule outside the container. Install the User Scripts plugin and add the script from the support page to keep the dashboard up to date.&#xD;
+&#xD;
+OIDC single sign-on (Authentik, Keycloak, Zitadel and others), SMTP and the LAN settings are under Show more settings.</Overview>
+  <Category>Backup: Tools:Utilities</Category>
+  <WebUI>http://[IP]:[PORT:3000]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/jamesfreeman959/unraid-borgwarehouse/main/templates/borgwarehouse.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/jamesfreeman959/unraid-borgwarehouse/main/icon.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires>Optional but recommended: the User Scripts plugin, to run BorgWarehouse's scheduled status and storage checks. See the support page for the script.</Requires>
+  <ExtraSearchTerms>borg borgbackup backup vorta borgmatic ssh repository</ExtraSearchTerms>
+
+  <!-- Ports -->
+  <Config Name="Web UI port" Target="3000" Default="3000" Mode="tcp" Description="Port for the BorgWarehouse web interface." Type="Port" Display="always" Required="true" Mask="false">3000</Config>
+  <Config Name="SSH port" Target="22" Default="2222" Mode="tcp" Description="Port Borg clients connect to over SSH. Unraid's own SSH uses 22, so pick another port. SSH_SERVER_PORT below must match this value." Type="Port" Display="always" Required="true" Mask="false">2222</Config>
+
+  <!-- Paths -->
+  <Config Name="Repositories" Target="/home/borgwarehouse/repos" Default="/mnt/user/borgwarehouse/" Mode="rw" Description="Where the Borg repositories are stored. Backups can be large, so use a share on the array (or a pool sized for it) rather than appdata." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/borgwarehouse/</Config>
+  <Config Name="Config" Target="/home/borgwarehouse/app/config" Default="/mnt/user/appdata/borgwarehouse/config/" Mode="rw" Description="Application config and user database." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/borgwarehouse/config/</Config>
+  <Config Name="SSH authorized keys" Target="/home/borgwarehouse/.ssh" Default="/mnt/user/appdata/borgwarehouse/ssh/" Mode="rw" Description="Client public keys managed by BorgWarehouse (authorized_keys)." Type="Path" Display="advanced" Required="true" Mask="false">/mnt/user/appdata/borgwarehouse/ssh/</Config>
+  <Config Name="SSH host keys" Target="/etc/ssh" Default="/mnt/user/appdata/borgwarehouse/ssh_host/" Mode="rw" Description="The server's SSH host keys, generated on first start. Keep this so clients don't see a host key warning after an update." Type="Path" Display="advanced" Required="true" Mask="false">/mnt/user/appdata/borgwarehouse/ssh_host/</Config>
+
+  <!-- Required variables -->
+  <Config Name="FQDN" Target="FQDN" Default="" Mode="" Description="Hostname or IP address that Borg clients use to reach this server. It appears in the backup commands BorgWarehouse shows you, e.g. tower.local or backup.example.com." Type="Variable" Display="always" Required="true" Mask="false"/>
+  <Config Name="SSH_SERVER_PORT" Target="SSH_SERVER_PORT" Default="2222" Mode="" Description="Must match the SSH host port above. It appears in the backup commands BorgWarehouse shows you." Type="Variable" Display="always" Required="true" Mask="false">2222</Config>
+  <Config Name="BETTER_AUTH_URL" Target="BETTER_AUTH_URL" Default="" Mode="" Description="Full URL you open BorgWarehouse at, including http:// or https://, e.g. http://192.168.1.10:3000 or https://borg.example.com. The scheme must match how you access it or login fails." Type="Variable" Display="always" Required="true" Mask="false"/>
+  <Config Name="BETTER_AUTH_SECRET" Target="BETTER_AUTH_SECRET" Default="" Mode="" Description="Secret used to sign login sessions. Generate with: openssl rand -base64 32. If empty, a new one is made at every restart and everyone is logged out." Type="Variable" Display="always" Required="true" Mask="true"/>
+  <Config Name="CRONJOB_KEY" Target="CRONJOB_KEY" Default="" Mode="" Description="Key for the scheduled status and storage checks. Generate with: openssl rand -base64 32. The User Scripts script reads it from the container, so you don't need to copy it anywhere." Type="Variable" Display="always" Required="true" Mask="true"/>
+
+  <!-- User mapping -->
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User ID the app runs as. 99 is Unraid's nobody user. Must not be 0." Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Group ID the app runs as. 100 is Unraid's users group. Must not be 0." Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
+
+  <!-- OIDC single sign-on -->
+  <Config Name="OIDC_ISSUER_URL" Target="OIDC_ISSUER_URL" Default="" Mode="" Description="OIDC issuer URL (Authentik, Keycloak, Zitadel, ...), without /.well-known/openid-configuration. Set the redirect URI at your provider to BETTER_AUTH_URL/api/auth/oauth2/callback/oidc. Users must already exist in BorgWarehouse with the same email; SSO doesn't create accounts." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="OIDC_CLIENT_ID" Target="OIDC_CLIENT_ID" Default="" Mode="" Description="OIDC client ID." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="OIDC_CLIENT_SECRET" Target="OIDC_CLIENT_SECRET" Default="" Mode="" Description="OIDC client secret." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="OIDC_PROVIDER_NAME" Target="OIDC_PROVIDER_NAME" Default="" Mode="" Description="Label on the SSO login button. Defaults to SSO." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="DISABLE_PASSWORD_LOGIN" Target="DISABLE_PASSWORD_LOGIN" Default="false|true" Mode="" Description="Allow SSO login only. Only takes effect when an SSO provider is configured." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+
+  <!-- Security and sessions -->
+  <Config Name="SETUP_SECRET" Target="SETUP_SECRET" Default="" Mode="" Description="Passphrase required to complete the first-run setup wizard. Recommended if the web UI is reachable from the internet before you've created the admin account." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="BETTER_AUTH_TRUSTED_ORIGINS" Target="BETTER_AUTH_TRUSTED_ORIGINS" Default="" Mode="" Description="Extra URLs you also open BorgWarehouse at, comma separated (e.g. both a reverse proxy domain and http://IP:3000)." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="SESSION_EXPIRY_SECONDS" Target="SESSION_EXPIRY_SECONDS" Default="" Mode="" Description="Login session lifetime in seconds. Defaults to 3600 (1 hour)." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <!-- LAN backups -->
+  <Config Name="FQDN_LAN" Target="FQDN_LAN" Default="" Mode="" Description="Optional local hostname or IP. BorgWarehouse then also shows backup commands for clients on your LAN." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="SSH_SERVER_PORT_LAN" Target="SSH_SERVER_PORT_LAN" Default="" Mode="" Description="SSH port for the LAN commands, if different." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="HIDE_SSH_PORT" Target="HIDE_SSH_PORT" Default="false|true" Mode="" Description="Leave the port out of the commands BorgWarehouse shows (e.g. when clients set it in ~/.ssh/config)." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+
+  <!-- Email -->
+  <Config Name="MAIL_SMTP_HOST" Target="MAIL_SMTP_HOST" Default="" Mode="" Description="SMTP server for email alerts." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="MAIL_SMTP_PORT" Target="MAIL_SMTP_PORT" Default="" Mode="" Description="SMTP port. Defaults to 587." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="MAIL_SMTP_LOGIN" Target="MAIL_SMTP_LOGIN" Default="" Mode="" Description="SMTP username." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="MAIL_SMTP_PWD" Target="MAIL_SMTP_PWD" Default="" Mode="" Description="SMTP password." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="MAIL_SMTP_FROM" Target="MAIL_SMTP_FROM" Default="" Mode="" Description="From address for alert emails." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="MAIL_REJECT_SELFSIGNED_TLS" Target="MAIL_REJECT_SELFSIGNED_TLS" Default="true|false" Mode="" Description="Set to false to accept a self-signed certificate on the SMTP server." Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+
+  <!-- Features -->
+  <Config Name="DISABLE_INTEGRATIONS" Target="DISABLE_INTEGRATIONS" Default="false|true" Mode="" Description="Turn off API tokens (integrations)." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+  <Config Name="DISABLE_DELETE_REPO" Target="DISABLE_DELETE_REPO" Default="false|true" Mode="" Description="Prevent anyone from deleting a repository." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+  <Config Name="DISABLE_COMPACT_REPO" Target="DISABLE_COMPACT_REPO" Default="false|true" Mode="" Description="Prevent anyone from compacting a repository." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+  <Config Name="STORAGE_TARGETS" Target="STORAGE_TARGETS" Default="" Mode="" Description="Extra storage locations selectable per repository, comma separated, optionally path|name (e.g. /mnt/offsite|Offsite disk). Each path must also be added as a Path mapping to this container." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="NEXT_TELEMETRY_DISABLED" Target="NEXT_TELEMETRY_DISABLED" Default="1" Mode="" Description="1 turns off Next.js anonymous telemetry." Type="Variable" Display="advanced" Required="false" Mask="false">1</Config>
+</Container>

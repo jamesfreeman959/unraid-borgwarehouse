@@ -1,0 +1,38 @@
+name: Validate
+
+# Checks the Unraid template and the User Scripts script.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xmllint
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libxml2-utils
+
+      - name: Well-formed XML
+        run: xmllint --noout templates/*.xml
+
+      - name: Template fields
+        run: |
+          for f in templates/*.xml; do
+            for tag in Name Repository Overview Support Project Category Icon TemplateURL WebUI; do
+              v=$(xmllint --xpath "normalize-space(/Container/$tag)" "$f")
+              [[ -n "$v" ]] || { echo "::error file=$f::missing <$tag>"; exit 1; }
+            done
+            # TemplateURL must point at this file on main.
+            url=$(xmllint --xpath 'normalize-space(/Container/TemplateURL)' "$f")
+            [[ "$url" == "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/$f" ]] \
+              || { echo "::error file=$f::TemplateURL $url does not match this repository"; exit 1; }
+            # Each Config needs a unique Target.
+            dups=$(xmllint --xpath '/Container/Config/@Target' "$f" | tr ' ' '\n' | grep . | sort | uniq -d)
+            [[ -z "$dups" ]] || { echo "::error file=$f::duplicate Config targets: $dups"; exit 1; }
+          done
+
+      - name: Shell scripts
+        run: shellcheck scripts/*.sh
