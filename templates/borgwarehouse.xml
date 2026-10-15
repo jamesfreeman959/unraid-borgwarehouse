@@ -7,7 +7,7 @@
   <MyIP/>
   <Shell>bash</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/jamesfreeman959/unraid-borgwarehouse/issues</Support>
+  <Support>https://forums.unraid.net/topic/200915-plugin-borgwarehouse/</Support>
   <Project>https://borgwarehouse.com</Project>
   <ReadMe>https://github.com/jamesfreeman959/unraid-borgwarehouse#readme</ReadMe>
   <Overview>BorgWarehouse is a fast, modern web interface for running a BorgBackup server. It turns your Unraid server into a central destination for Borg backups from your other machines: create and manage repositories, assign SSH keys, set quotas, monitor backup status and storage use, and get alerts by email or Apprise when a backup is late. Clients back up over SSH using borg, Vorta or borgmatic.&#xD;

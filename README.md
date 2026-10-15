@@ -85,9 +85,9 @@ Path, Port, Variable…** (`GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET`, etc.). See
 
 ## Support
 
-Problems with the template (defaults, descriptions, the User Scripts script): open an
-[issue here](https://github.com/jamesfreeman959/unraid-borgwarehouse/issues). Problems with BorgWarehouse itself:
-[upstream](https://github.com/Ravinou/borgwarehouse/issues).
+Questions and help on Unraid: the [support thread](https://forums.unraid.net/topic/200915-plugin-borgwarehouse/) on the Unraid forums. Bugs in the template (defaults,
+descriptions, the User Scripts script): open an [issue here](https://github.com/jamesfreeman959/unraid-borgwarehouse/issues).
+Problems with BorgWarehouse itself: [upstream](https://github.com/Ravinou/borgwarehouse/issues).
 
 ## Repository layout
 
